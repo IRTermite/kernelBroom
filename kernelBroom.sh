@@ -49,7 +49,8 @@ printf "\nKeeping these kernels\n" | tee -a $kernelBroomLog
 tail -$keepCount $kernelBroomTmp | tee -a $kernelBroomLog
 
 # Make sure to remove current running kernel from delete list
-sed --in-place '/$currentKernel/d' $kernelBroomTmp
+#sed --in-place '/$currentKernel/d' $kernelBroomTmp
+grep -v $currentKernel $kernelBroomTmp > ${kernelBroomTmp}.tmp && mv ${kernelBroomTmp}.tmp ${kernelBroomTmp}
 
 printf "\nRemoving these\n" | tee -a $kernelBroomLog
 # rm -f $(ls -1t /path/to/your/logs/ | tail -n +11)
