@@ -62,7 +62,7 @@ head -n -$keepCount $kernelBroomTmp | tee -a $kernelBroomLog |tee -a $kernelBroo
 printf "\nCommands being run\n"
 cat $kernelBroomDelete | while read KERNEL
 do
-	echo "mv -p /boot/*$KERNEL* $kernelBroomBkup/"
+	echo "mv -p /boot/*$KERNEL* $kernelBroomBkup/ << Need to uncomment the next line to work"
 #	mv -p /boot/*$KERNEL* $kernelBroomBkup/	
 #	echo "rm /boot/*$KERNEL*"
 #	rm /boot/*$KERNEL*
