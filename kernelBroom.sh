@@ -8,10 +8,18 @@ printf "\n*********************************************************************\
 printf "\nATTENTION: Right now, this is only outputting your installed kernels.\n"
 printf "It is not actually doing anything yet.\n"
 printf "You need to edit this file to uncomment the remove command.\n"
-printf "\n*********************************************************************\n"
 
+# How many installed kernels to keep
+keepCount=3
 # Log location
 kernelBroomLog=~/kernelBroom.log
+# Kernels to delete (Temp File)
+kernelBroomTmp=~/kernelBroom.tmp
+# Kernels to delete (Temp File)
+kernelBroomDelete=~/kernelBroomDelete.tmp
+# Kernels backup location
+kernelBroomBkup=~/kernelBroomBkup
+
 
 # List current running kernel
 currentKernel=$(uname -r)
@@ -20,6 +28,7 @@ currentKernel=$(uname -r)
 #installedKernels=$(sudo dpkg -l linux-image-\* | grep ^ii | awk '{print $2}')
 
 # Set run date in log
+printf "\n*********************************************************************" | tee -a $kernelBroomLog
 printf "\n\nkernelBroom Last Run: $(date)\n" | tee -a $kernelBroomLog
 
 # Just test it all works.
@@ -30,7 +39,7 @@ printf "\nInstalled kernels\n" | tee -a $kernelBroomLog
 dpkg -l linux-image-\* | grep ^ii | awk '{print $3}' | sort | uniq | while read readKernels
 do
 #	echo $readKernels && echo $readKernels >> $kernelBroomLog
-	echo $readKernels | tee -a $kernelBroomLog
+	echo $readKernels | tee -a $kernelBroomLog | tee -a $kernelBroomTmp
 done
 
 #dpkg -l linux-image-\* | grep ^ii | awk '{print $3}' | sort | uniq > installedKernels.list
@@ -41,8 +50,30 @@ done
 
 
 # Need to make this output to a temporary file, read all but the two most recent versions, then auto prune the rest
-printf "\nGoing to keep these kernels\n"
-tail -3 $kernelBroomLog
+printf "\nKeeping these kernels\n" | tee -a $kernelBroomLog
+tail -$keepCount $kernelBroomTmp | tee -a $kernelBroomLog
 
-# Uncomment the following line to ACTUALLY remove the kernels
-# for removeKernels in 
+printf "\nRemoving these\n" | tee -a $kernelBroomLog
+# rm -f $(ls -1t /path/to/your/logs/ | tail -n +11)
+head -n -$keepCount $kernelBroomTmp | tee -a $kernelBroomLog |tee -a $kernelBroomDelete
+
+
+### Uncomment to ACTUALLY remove the kernels
+printf "\nCommands being run\n"
+cat $kernelBroomDelete | while read KERNEL
+do
+	echo "mv -p /boot/*$KERNEL* $kernelBroomBkup/"
+#	mv -p /boot/*$KERNEL* $kernelBroomBkup/	
+#	echo "rm /boot/*$KERNEL*"
+#	rm /boot/*$KERNEL*
+done
+
+## Update grub
+echo "update-grub"
+# update-grub
+## Load current running kernel in 'uname -r' on next reboot
+echo update-initramfs –u -k all
+# update-initramfs –u -k all
+
+## Cleanup
+rm $kernelBroomTmp && rm $kernelBroomDelete
